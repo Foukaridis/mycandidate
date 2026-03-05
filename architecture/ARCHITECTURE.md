@@ -15,12 +15,19 @@ For this project, I recommend **Amazon ECS with AWS Fargate**.
 - **Cost-Effective:** Pay only for the resources consumed by the tasks.
 - **Integration:** Deeply integrated with other AWS services like IAM, Secrets Manager, and CloudWatch.
 
-## Scaling Considerations
+## Scaling Considerations & Cost Optimization
 
-- **Horizontal Auto-scaling:** Configure ECS Service Auto Scaling based on CPU and memory utilization.
-- **ALB Target Groups:** Ensure the Application Load Balancer is configured with health checks to route traffic only to healthy tasks.
-- **Database Scaling:** Use RDS Multi-AZ for high availability and Read Replicas for scaling read-heavy workloads.
-- **Redis Caching:** Use ElastiCache for Redis to reduce database load and improve response times for frequent queries.
+Thoughtful scaling is critical for civic technology applications that may experience sudden spikes in traffic during elections or campaigns, while remaining idle during off-seasons.
+
+- **Horizontal Auto-scaling (ECS):** 
+  - Configure ECS Service Auto Scaling using **Target Tracking Scaling Policies**.
+  - **Metric:** Scale based on average CPU utilization (e.g., target 70%) or ALB Request Count Per Target. This ensures we add tasks proactively during traffic spikes.
+- **ALB Target Groups:** Ensure the Application Load Balancer is configured with proper health checks to gracefully drain and replace unhealthy tasks without dropping user requests.
+- **Database Scaling (RDS):** 
+  - Use RDS Multi-AZ for high availability (failover).
+  - Use **Read Replicas** for scaling read-heavy workloads (like retrieving candidate lists). Civic apps are typically read-heavy, making this highly cost-effective.
+- **Caching Layer (Redis):** Use ElastiCache for Redis to aggressively cache database queries. This reduces the load on the expensive RDS instance, improving response times and lowering overall database costs.
+- **Cost Optimization (Fargate Spot):** For background workers or non-critical web traffic, utilize **AWS Fargate Spot** capacity providers, which can save up to 70% on compute costs compared to on-demand pricing.
 
 ## Security Best Practices
 
@@ -32,11 +39,11 @@ For this project, I recommend **Amazon ECS with AWS Fargate**.
 
 ## Instance Sizing Recommendations
 
-| Component | Sizing Recommendation | Rationale |
-|-----------|-----------------------|-----------|
-| **ECS Task** | 0.5 vCPU, 1 GB RAM | Sufficient for the Flask app handling moderate traffic; easily scalable. |
-| **RDS** | db.t3.medium | General purpose instance with enough performance for typical civic tech data loads. |
-| **Redis** | cache.t3.micro | Small instance is usually sufficient for session/caching needs in this application. |
+| Component | Sizing & Configuration | Rationale & Cost Thoughtfulness |
+|-----------|------------------------|---------------------------------|
+| **ECS Task (Web)** | 0.5 vCPU, 1 GB RAM (Fargate) | Flask API workers are relatively lightweight. Starting small and scaling out horizontally (adding more tasks) is better for fault tolerance than scaling up vertically. |
+| **RDS (Postgres)** | `db.t4g.medium` (Multi-AZ) | Utilizing ARM-based Graviton2 (`t4g`) instances provides significantly better price-performance compared to previous generations (`t3`). |
+| **ElastiCache (Redis)** | `cache.t4g.micro` | A small Graviton2 instance is extremely cheap and perfectly suited for the caching needs of a typical deployment of this size. |
 
 ## CI/CD Pipeline Proposal
 
