@@ -11,7 +11,8 @@ app.secret_key = os.environ.get('SECRET_KEY', 'SECRET_KEY')
 env = os.environ.get('FLASK_ENV', 'development')
 
 app.config['ENV'] = env
-app.config.from_pyfile(f'config/{env}.cfg')
+current_dir = os.path.dirname(os.path.abspath(__file__))
+app.config.from_pyfile(os.path.join(current_dir, f'config/{env}.cfg'))
 
 # CSRF protection
 from flask_wtf.csrf import CSRFProtect
