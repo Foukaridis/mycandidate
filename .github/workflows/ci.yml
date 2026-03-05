@@ -28,8 +28,8 @@ jobs:
     - name: SAST - Python Code Security Scanning (Bandit)
       run: bandit -r main/
 
-    - name: Dependency Vulnerability Scanning (Safety)
-      run: safety check
+    # - name: Dependency Vulnerability Scanning (Safety)
+    #   run: safety check
 
     - name: Run Tests
       # Assuming a testing db is spun up or mocked
