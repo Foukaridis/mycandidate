@@ -1,4 +1,4 @@
-from flask import request, render_template, redirect, url_for, session, flash
+from flask import request, render_template, redirect, url_for, session, flash, jsonify
 import pandas as pd
 from .database.models import *
 from .app import app
@@ -93,3 +93,16 @@ def insights():
             'insights.html',
             config=config,
             domain = request.url_root)
+
+@app.route('/api/v1/wards/<ward_id>/candidates', methods=['GET'])
+def get_ward_candidates(ward_id):
+    """
+    Returns a JSON array of all candidates standing for election in the specified ward.
+    """
+    candidate_type = 'ward' # Assuming 'ward' is the type name as per requirement
+    candidates, code = get_candidates(ward_id, db, candidate_type)
+    
+    # If no candidates found for type 'ward', try to infer or handle gracefully
+    # The existing get_candidates returns (rows_as_dicts, code)
+    
+    return jsonify(candidates)
