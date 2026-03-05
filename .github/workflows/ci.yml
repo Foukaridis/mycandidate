@@ -32,10 +32,9 @@ jobs:
     #   run: safety check
 
     - name: Run Tests
-      # Assuming a testing db is spun up or mocked
-      run: pytest tests/test_api.py -v
       env:
         FLASK_ENV: development
+      run: pytest tests/test_api.py -v
   docker-security-scan:
     runs-on: ubuntu-latest
     needs: build-and-test
