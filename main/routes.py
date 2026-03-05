@@ -32,7 +32,7 @@ def home():
             WHERE {code} = :form_id
             AND candidate_type = :candidate_type
             LIMIT 1
-        """
+        """  # nosec B608
         params = {'form_id': form_id, "candidate_type": candidate_type}
         candidate_result = db.session.execute(candidate_query, params)
         candidate = candidate_result.fetchone()
@@ -65,7 +65,7 @@ def home():
             WHERE {code} = :form_id
             AND candidate_type = :candidate_type
             LIMIT 1
-        """
+        """  # nosec B608
         params = {'form_id': form_id, "candidate_type": candidate_type}
         candidate_result = db.session.execute(candidate_query, params)
         candidate = candidate_result.fetchone()

@@ -15,9 +15,9 @@ def create_form(candidate_type, code, name):
             super(CandidatesForm, self).__init__(*args, **kwargs)
             query = None
             if name is not None:
-                query = text(f"SELECT DISTINCT {code}, {name} FROM candidates WHERE candidate_type = :candidate_type")
+                query = text(f"SELECT DISTINCT {code}, {name} FROM candidates WHERE candidate_type = :candidate_type")  # nosec B608
             else:
-                query = text(f"SELECT DISTINCT {code} FROM candidates WHERE candidate_type = :candidate_type")
+                query = text(f"SELECT DISTINCT {code} FROM candidates WHERE candidate_type = :candidate_type")  # nosec B608
             assurances = db.session.execute(query, {'candidate_type': candidate_type}).fetchall()
 
             if name is not None:

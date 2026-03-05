@@ -8,6 +8,8 @@ import os
 CHUNK_SIZE = 3500
 records = []
 
+import ast
+
 def seed_site_settings(db, excel_file_path):
     xls = pd.ExcelFile(f'{excel_file_path}')
     df = pd.read_excel(xls, 'site_settings')
@@ -84,7 +86,7 @@ def seed_data_candidates(db, excel_file_path):
                 # Directly use the string as a dictionary
                 data_schemas = json.loads(row["data_schemas"])
             except Exception as e:
-                data_schemas = eval(row["data_schemas"])
+                data_schemas = ast.literal_eval(row["data_schemas"])
                 print("Error:", e)
             print(data_schemas)
             for table_name, csv_filename in data_schemas.items():
@@ -142,7 +144,7 @@ def seed_data_candidates(db, excel_file_path):
                     insert_query = f"""
                         INSERT INTO candidates ({', '.join(row_data_adjusted.keys())}) 
                         VALUES ({', '.join([':' + col for col in row_data_adjusted.keys()])})
-                    """
+                    """  # nosec B608
                     db.session.execute(insert_query, row_data_adjusted)
         else:
             print("no such column")

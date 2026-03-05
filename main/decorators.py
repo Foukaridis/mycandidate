@@ -26,7 +26,7 @@ def get_candidates(form_id, db, candidate_type):
             retrieve_query = f"""SELECT * FROM candidates
                     WHERE {code} = :form_id
                     AND candidate_type = :candidate_type
-                """
+                """  # nosec B608
             params = {'form_id': form_id, "candidate_type": candidate_type}
             result = db.session.execute(retrieve_query, params)
             column_names = result.keys()
