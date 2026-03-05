@@ -3,44 +3,7 @@
 This document describes the proposed AWS architecture for deploying the MyCandidate application in a secure, scalable, and production-ready manner.
 
 ## Architecture Diagram
-
-```mermaid
-graph TD
-    User([User]) --> Internet[Internet]
-    Internet --> ALB[Application Load Balancer]
-    
-    subgraph VPC [VPC]
-        subgraph PublicSubnets [Public Subnets]
-            ALB
-        end
-        
-        subgraph PrivateSubnets [Private Subnets]
-            subgraph AppTier [App Tier]
-                ECS[ECS Cluster - Fargate]
-                Service[Flask Service]
-                ECS --> Service
-            end
-            
-            subgraph DataTier [Data Tier]
-                RDS[(RDS PostgreSQL)]
-                Redis[(ElastiCache Redis)]
-            end
-        end
-        
-        Service --> RDS
-        Service --> Redis
-    end
-    
-    subgraph Management [Management & Security]
-        SM[Secrets Manager]
-        CW[CloudWatch Logs/Metrics]
-        IAM[IAM Roles/Policies]
-    end
-    
-    Service -.-> SM
-    Service -.-> CW
-    Service -.-> IAM
-```
+![Architecture Diagram](architecture.png)
 
 ## Choice of Orchestration: Amazon ECS (Fargate)
 
@@ -85,10 +48,4 @@ For this project, I recommend **Amazon ECS with AWS Fargate**.
 4. **Build:** Build Docker image and push to Amazon ECR.
 5. **Deploy:** Update ECS Service with the new image definition using `aws ecs update-service`.
 
-```mermaid
-graph LR
-    Source[Push to Main] --> Scan[Security Scan]
-    Scan --> Test[Run Tests]
-    Test --> Build[Build & Push ECR]
-    Build --> Deploy[Deploy to ECS]
-```
+![Architecture Diagram](cicd.png)
