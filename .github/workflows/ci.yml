@@ -30,7 +30,10 @@ jobs:
 
     # - name: Dependency Vulnerability Scanning (Safety)
     #   run: safety check
-
+    - name: Ensure config available for tests
+      run: |
+        mkdir -p /home/runner/work/mycandidate/mycandidate/main/config
+        cp main/config/development.cfg /home/runner/work/mycandidate/mycandidate/main/config/development.cfg
     - name: Run Tests
       env:
         FLASK_ENV: development
@@ -58,4 +61,5 @@ jobs:
         ignore-unfixed: true
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
+
 
