@@ -35,8 +35,6 @@ jobs:
         mkdir -p /home/runner/work/mycandidate/mycandidate/main/config
         cp main/config/development.cfg /home/runner/work/mycandidate/mycandidate/main/config/development.cfg
     - name: Run Tests
-      env:
-        FLASK_ENV: development
       # Assuming a testing db is spun up or mocked
       run: pytest tests/test_api.py -v
       
@@ -61,5 +59,6 @@ jobs:
         ignore-unfixed: true
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
+
 
 
