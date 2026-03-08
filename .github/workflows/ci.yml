@@ -72,11 +72,11 @@ jobs:
     - name: Run Tests with Docker Compose
       run: |
         docker-compose up -d db redis
-        sleep 10
+        sleep 15
         export PYTHONPATH=$PWD
         export FLASK_ENV=test
-        export DB_HOST=db
-        export DB_PORT=5432
+        export DB_HOST=localhost
+        export DB_PORT=5433
         python -m pytest tests/test_api.py -v
         docker-compose down
       continue-on-error: false
