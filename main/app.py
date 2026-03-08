@@ -12,7 +12,29 @@ env = os.environ.get('FLASK_ENV', 'development')
 
 app.config['ENV'] = env
 current_dir = os.path.dirname(os.path.abspath(__file__))
-app.config.from_pyfile(os.path.join(current_dir, f'config/{env}.cfg'))
+config_path = os.path.join(current_dir, f'config/{env}.cfg')
+if os.path.exists(config_path):
+    app.config.from_pyfile(config_path)
+else:
+    # Fallback config for CI/testing environments where config files don't exist
+    app.config.update(
+        DEBUG=True,
+        TESTING=(env == 'test'),
+        SQLALCHEMY_DATABASE_URI=os.environ.get(
+            'SQLALCHEMY_DATABASE_URI',
+            f'postgresql://postgres:postgres@{os.environ.get("DB_HOST", "localhost")}:{os.environ.get("DB_PORT", "5433")}/mycandidate' + ('_test' if env == 'test' else '')
+        ),
+        SECURITY_URL_PREFIX="/user",
+        SECURITY_PASSWORD_HASH="sha256_crypt",
+        SECURITY_PASSWORD_SALT="sha256_crypt",
+        SECURITY_EMAIL_SENDER="",
+        SECURITY_LOGIN_URL="/login/",
+        SECURITY_LOGOUT_URL="/logout/",
+        SECURITY_POST_LOGIN_VIEW="/",
+        SECURITY_CHANGE_URL="/change-password/",
+        SECURITY_RESET_URL="/forgot-password",
+        SECURITY_EMAIL_SUBJECT_REGISTER="Welcome to middleware",
+    )
 
 # CSRF protection
 from flask_wtf.csrf import CSRFProtect
