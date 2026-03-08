@@ -19,6 +19,8 @@ def get_candidates(form_id, db, candidate_type):
     distinct_types_result = db.session.execute(distinct_types_query)
 
     rows_as_dicts = []
+    code = None  # Initialize code to prevent UnboundLocalError if no candidates found
+    
     for row in distinct_types_result:
         if row[0] == candidate_type:
             most_common_values = row[1].strip("{}").split(',')

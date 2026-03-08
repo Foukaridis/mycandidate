@@ -62,12 +62,16 @@ jobs:
     # Step 6: Run Unit Tests with Docker Services
     # Tests require PostgreSQL and Redis; docker-compose spins them up
     # PYTHONPATH=$PWD ensures "main" module can be imported
+    # DB_HOST=db and DB_PORT=5432 tells tests to use Docker service name and internal port
+    # (not localhost:5433 which is the external port)
     # Database: mycandidate_test (auto-created by init-databases.sql)
     - name: Run Tests with Docker Compose
       run: |
         docker-compose up -d db redis
         sleep 10
         export PYTHONPATH=$PWD
+        export DB_HOST=db
+        export DB_PORT=5432
         python -m pytest tests/test_api.py -v
         docker-compose down
       continue-on-error: false
