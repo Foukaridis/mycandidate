@@ -17,7 +17,7 @@ if os.path.exists(config_path):
     app.config.from_pyfile(config_path)
 else:
     # Fallback config for CI/testing environments where config files don't exist
-    app.config.update(
+    app.config.update(  # nosec B106 - not hardcoded passwords, Flask security config parameters
         DEBUG=True,
         TESTING=(env == 'test'),
         SQLALCHEMY_DATABASE_URI=os.environ.get(
@@ -25,8 +25,8 @@ else:
             f'postgresql://postgres:postgres@{os.environ.get("DB_HOST", "localhost")}:{os.environ.get("DB_PORT", "5433")}/mycandidate' + ('_test' if env == 'test' else '')
         ),
         SECURITY_URL_PREFIX="/user",
-        SECURITY_PASSWORD_HASH="sha256_crypt",  # nosec B106 - not a password, config parameter
-        SECURITY_PASSWORD_SALT="sha256_crypt",  # nosec B106 - not a password, config parameter
+        SECURITY_PASSWORD_HASH="sha256_crypt",
+        SECURITY_PASSWORD_SALT="sha256_crypt",
         SECURITY_EMAIL_SENDER="",
         SECURITY_LOGIN_URL="/login/",
         SECURITY_LOGOUT_URL="/logout/",
