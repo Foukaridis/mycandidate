@@ -72,6 +72,7 @@ jobs:
         sudo apt-get install docker-compose -y
     - name: Run Tests with Docker Compose
       run: |
+        docker-compose build --no-cache
         docker-compose up -d db redis
         sleep 15
         export PYTHONPATH=$PWD
