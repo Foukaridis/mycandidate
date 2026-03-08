@@ -1,40 +1,78 @@
 name: CI Pipeline
 
+# Trigger on push to main and all pull requests
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
+# GitHub Actions secret/variables required:
+# - None for local testing; for production ECR push, add:
+#   - AWS_ACCOUNT_ID, AWS_REGION, ECR_REPOSITORY_NAME
+#   - AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY (or use OpenID Connect)
+
 jobs:
+  # Job 1: Build, Test, and SAST Security Scanning
   build-and-test:
     runs-on: ubuntu-latest
+    
+    # Job outputs for downstream consumption
+    outputs:
+      image-sha: ${{ github.sha }}
 
     steps:
+    # Step 1: Clone the repository
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    # Step 2: Set up Python 3.9 (matches production runtime)
+    # This ensures test environment mirrors production exactly
     - name: Set up Python 3.9
       uses: actions/setup-python@v4
       with:
         python-version: "3.9"
 
+    # Step 3: Install dependencies
+    # Note: safety and bandit are security scanning tools (not in requirements.txt)
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest safety bandit
 
+    # Step 4: Static Application Security Testing (SAST) - Python Code
+    # Bandit scans Python code for common security issues:
+    # - Hardcoded passwords, secrets
+    # - Insecure SQL queries (SQL injection)
+    # - Insecure deserialization
+    # Exit Code: 0 indicates no HIGH/MEDIUM issues found
+    # Note: B608 (hardcoded SQL) is whitelisted where dynamic queries are intentional
     - name: SAST - Python Code Security Scanning (Bandit)
       run: bandit -r main/
+      continue-on-error: false
 
+    # Step 5: Dependency Vulnerability Scanning (Optional - Currently Disabled)
+    # Safety checks requirements.txt against known CVE database
+    # Note: Disabled due to transitive dependency deprecation warnings
+    # Re-enable when safety database is updated
     # - name: Dependency Vulnerability Scanning (Safety)
     #   run: safety check
 
-    - name: Run Tests
-      # Assuming a testing db is spun up or mocked
-      run: pytest tests/test_api.py -v
-      
+    # Step 6: Run Unit Tests with Docker Services
+    # Tests require PostgreSQL and Redis; docker-compose spins them up
+    # PYTHONPATH=$PWD ensures "main" module can be imported
+    # Database: mycandidate_test (auto-created by init-databases.sql)
+    - name: Run Tests with Docker Compose
+      run: |
+        docker-compose up -d db redis
+        sleep 10
+        export PYTHONPATH=$PWD
+        python -m pytest tests/test_api.py -v
+        docker-compose down
+      continue-on-error: false
+
+  # Job 2: Container Image Security Scanning (Depends on build-and-test)
   docker-security-scan:
     runs-on: ubuntu-latest
     needs: build-and-test
@@ -43,10 +81,20 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    # Step 1: Build Docker Image matching Dockerfile
+    # Image tag includes commit SHA for traceability
+    # Built image will be scanned for vulnerabilities
     - name: Build an image from Dockerfile
       run: |
         docker build -t mycandidate:${{ github.sha }} .
 
+    # Step 2: Container Image Vulnerability Scanning (Trivy)
+    # Trivy scans Docker image for:
+    # - OS-level vulnerabilities (apt packages, base image)
+    # - Application dependencies vulnerabilities (Python packages)
+    # Severity filter: Only CRITICAL and HIGH severity issues block deployment
+    # ignore-unfixed: true → Only reports vulnerabilities with available fixes
+    # exit-code: 1 → Fail the step if vulnerabilities found
     - name: Container Image Vulnerability Scan (Trivy)
       uses: aquasecurity/trivy-action@master
       with:
@@ -56,3 +104,12 @@ jobs:
         ignore-unfixed: true
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
+      continue-on-error: false
+
+# Future Enhancements:
+# 1. Push to Amazon ECR on success (requires AWS credentials)
+# 2. Deploy to ECS Fargate (update service definition)
+# 3. Run integration tests against staging environment
+# 4. Slack notifications on success/failure
+# 5. Code coverage reporting (pytest-cov)
+# 6. Performance benchmarking

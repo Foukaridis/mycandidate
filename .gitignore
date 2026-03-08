@@ -116,3 +116,6 @@ south-africa.json
 
 development.cfg
 *.csv
+
+PROMPT_LOG.md
+copilot-instructions.md

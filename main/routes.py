@@ -98,11 +98,52 @@ def insights():
 def get_ward_candidates(ward_id):
     """
     Returns a JSON array of all candidates standing for election in the specified ward.
+    
+    Args:
+        ward_id (str): The unique identifier for the ward
+        
+    Returns:
+        JSON: Array of candidate objects with fields:
+            - candidate_type (str): Type of candidacy (e.g., 'ward')
+            - ward_id (str): The ward identifier
+            - name (str): Candidate name
+            - party (str): Political party affiliation
+            - orderno (str): Order number on ballot
+            - Additional fields depend on the dynamic schema
+        
+    Status Codes:
+        200: Success - returns array (may be empty if no candidates)
+        400: Bad request - invalid ward_id format
+        500: Server error
+        
+    Example Response (200):
+    [
+        {
+            "candidate_type": "ward",
+            "ward_id": "12345",
+            "name": "John Candidate",
+            "party": "Party A",
+            "orderno": "1"
+        },
+        {
+            "candidate_type": "ward",
+            "ward_id": "12345",
+            "name": "Jane Candidate",
+            "party": "Party B",
+            "orderno": "2"
+        }
+    ]
     """
-    candidate_type = 'ward' # Assuming 'ward' is the type name as per requirement
-    candidates, code = get_candidates(ward_id, db, candidate_type)
-    
-    # If no candidates found for type 'ward', try to infer or handle gracefully
-    # The existing get_candidates returns (rows_as_dicts, code)
-    
-    return jsonify(candidates)
+    try:
+        if not ward_id or not isinstance(ward_id, str):
+            return jsonify({'error': 'Invalid ward_id format'}), 400
+            
+        candidate_type = 'ward'
+        candidates, code = get_candidates(ward_id, db, candidate_type)
+        
+        # Return empty array if no candidates found (not an error)
+        return jsonify(candidates or []), 200
+        
+    except Exception as e:
+        app.logger.error(f"Error retrieving candidates for ward {ward_id}: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
