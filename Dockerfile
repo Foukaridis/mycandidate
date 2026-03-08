@@ -28,7 +28,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy only requirements.txt first to leverage Docker layer caching
 # This allows Docker to reuse the dependency layer if only source code changes
 COPY requirements.txt /app/
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --upgrade setuptools>=70.0.0
 
 # DevOps Improvement: Consider adding a requirements-dev.txt for development dependencies
 # This allows separating dev tools from production runtime
