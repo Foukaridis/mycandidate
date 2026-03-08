@@ -7,8 +7,8 @@ FROM python:3.9-slim
 
 # Set environment variables to prevent Python from writing pyc files and to flush stdout/stderr
 # These settings are critical for containerized environments for real-time logging
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
 
