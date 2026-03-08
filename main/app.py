@@ -17,7 +17,7 @@ if os.path.exists(config_path):
     app.config.from_pyfile(config_path)
 else:
     # Fallback config for CI/testing environments where config files don't exist
-    app.config.update(  # nosec B106 - not hardcoded passwords, Flask security config parameters
+    app.config.update(  # nosec B106
         DEBUG=True,
         TESTING=(env == 'test'),
         SQLALCHEMY_DATABASE_URI=os.environ.get(
