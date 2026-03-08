@@ -74,6 +74,7 @@ jobs:
         docker-compose up -d db redis
         sleep 10
         export PYTHONPATH=$PWD
+        export FLASK_ENV=test
         export DB_HOST=db
         export DB_PORT=5432
         python -m pytest tests/test_api.py -v
